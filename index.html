@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>શબ્દ શોધ — કોયડા ગમ્મત</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&family=Noto+Sans+Gujarati:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;font-family:'Noto Sans Gujarati','Roboto',sans-serif;background:#fff;color:#000;overflow-x:hidden;}
+.container{width:100%;max-width:540px;margin:0 auto;padding:14px 12px 32px;}
+.header{text-align:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1.5px solid #E2E3E4;}
+.brand{font-size:11px;color:#C2C2C2;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;font-family:'Roboto',sans-serif;}
+h1{font-size:24px;font-weight:700;color:#752886;margin-bottom:2px;}
+.sub{font-size:13px;color:#444;}
+
+.tabs{display:flex;gap:6px;margin-bottom:12px;}
+.tab{font-family:'Noto Sans Gujarati','Roboto',sans-serif;font-size:12px;background:#fff;border:1.5px solid #E2E3E4;border-radius:8px;padding:7px 8px;color:#444;cursor:pointer;flex:1;text-align:center;min-height:36px;-webkit-appearance:none;transition:all 0.15s;line-height:1.3;}
+.tab:active{transform:scale(0.96);}
+.tab.active{background:#752886;border-color:#752886;color:#fff;font-weight:600;}
+.tab.done{background:#EDD1FF;border-color:#752886;color:#752886;}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}
+.stat{background:#F2F2F2;border:1px solid #E2E3E4;border-radius:8px;padding:7px 6px;text-align:center;}
+.stat .lbl{font-size:10px;color:#C2C2C2;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:1px;font-family:'Roboto',sans-serif;}
+.stat .val{font-size:17px;font-weight:600;color:#752886;line-height:1.1;}
+
+.game-card{background:#fff;border:1.5px solid #E2E3E4;border-radius:14px;overflow:hidden;margin-bottom:12px;}
+.card-header{background:#752886;padding:11px 16px;}
+.card-header h2{font-size:16px;font-weight:700;color:#fff;}
+.card-header .cdesc{font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px;}
+.card-body{padding:12px;}
+
+/* GRID */
+.grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:12px;}
+.grid-table{border-collapse:collapse;margin:0 auto;}
+.grid-table td{
+  width:34px;height:34px;
+  text-align:center;vertical-align:middle;
+  font-size:14px;font-weight:600;
+  font-family:'Roboto',sans-serif;
+  color:#333;
+  border:1px solid #F2F2F2;
+  cursor:pointer;
+  user-select:none;-webkit-user-select:none;
+  transition:background 0.1s, color 0.1s;
+  position:relative;
+}
+.grid-table td:active{background:#EDD1FF;}
+.grid-table td.selecting{background:#FDE9C9;color:#a06000;}
+.grid-table td.found{background:#EDD1FF;color:#752886;font-weight:700;}
+.grid-table td.found-new{background:#D8F5E0;color:#1b5e20;animation:pop 0.35s ease;}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
+
+/* WORD LIST */
+.words-box{background:#F2F2F2;border-radius:10px;padding:10px 12px;margin-bottom:10px;}
+.words-label{font-size:10px;font-weight:600;color:#C2C2C2;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-family:'Roboto',sans-serif;}
+.words-grid{display:flex;flex-wrap:wrap;gap:6px;}
+.word-chip{font-family:'Roboto',sans-serif;font-size:12px;font-weight:600;background:#fff;border:1.5px solid #E2E3E4;border-radius:20px;padding:4px 12px;color:#444;transition:all 0.2s;}
+.word-chip.found{background:#EDD1FF;border-color:#752886;color:#752886;text-decoration:line-through;text-decoration-color:#752886;}
+
+/* FEEDBACK */
+.feedback{min-height:38px;display:flex;align-items:center;justify-content:center;border-radius:8px;padding:7px 12px;margin-bottom:8px;font-size:13px;opacity:0;transition:opacity 0.2s;text-align:center;}
+.feedback.show{opacity:1;}
+.feedback.ok{background:#D8F5E0;color:#1b5e20;border:1px solid #b2dfdb;}
+.feedback.bad{background:#FFEDEC;color:#b71c1c;border:1px solid #ffcdd2;}
+.feedback.done{background:#EDD1FF;color:#752886;border:1px solid #752886;font-weight:700;}
+
+.instruction{text-align:center;font-size:11px;color:#C2C2C2;margin-top:6px;line-height:1.6;}
+.btn-reset{font-family:'Noto Sans Gujarati','Roboto',sans-serif;display:block;margin:10px auto 0;background:#fff;border:1.5px solid #E2E3E4;border-radius:8px;padding:9px 22px;color:#444;font-size:13px;cursor:pointer;min-height:40px;-webkit-appearance:none;}
+.btn-reset:active{transform:scale(0.97);}
+
+.progress-wrap{height:4px;background:#E2E3E4;border-radius:10px;margin-bottom:12px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#752886,#F9A824);border-radius:10px;transition:width 0.4s;}
+
+/* selection line canvas overlay */
+.grid-container{position:relative;display:inline-block;}
+.sel-canvas{position:absolute;top:0;left:0;pointer-events:none;}
+
+.footer{text-align:center;margin-top:20px;padding-top:12px;border-top:1px solid #E2E3E4;font-size:11px;color:#C2C2C2;}
+
+/* responsive grid cells */
+@media(max-width:380px){
+  .grid-table td{width:28px;height:28px;font-size:12px;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+  <div class="brand">Dreamchild Garbhsanskar — Koydaa Gammat</div>
+  <h1>શબ્દ શોધ</h1>
+  <div class="sub">ઊભા • આડા • ત્રાંસા • ઉલટા શબ્દો શોધો</div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="progress-wrap"><div class="progress-fill" id="pf" style="width:0%"></div></div>
+<div class="stats">
+  <div class="stat"><div class="lbl">સ્કોર</div><div class="val" id="scoreVal">0</div></div>
+  <div class="stat"><div class="lbl">મળ્યા</div><div class="val"><span id="foundVal">0</span><span style="font-size:11px;color:#C2C2C2;"> / </span><span id="totalVal">10</span></div></div>
+  <div class="stat"><div class="lbl">સમય</div><div class="val" id="timerVal">0s</div></div>
+</div>
+<div id="gameArea"></div>
+<div class="footer">©Dreamchild Garbhsanskar — શબ્દ શોધ શ્રેણી</div>
+</div>
+
+<script>
+/* ═══════════════════════════════
+   PUZZLE DATA — All words verified
+   ═══════════════════════════════ */
+const PUZZLES = [
+  {
+    title:'Asian Countries',
+    titleGu:'એશિયાઈ દેશો',
+    desc:'Asian Countries',
+    descGu:'ઊભા, આડા, ત્રાંસા અથવા ઉલટા — 10 એશિયાઈ દેશ શોધો',
+    grid:[
+      ['R','W','U','R','E','A','D','A','B','O','M','A','N','S'],
+      ['B','T','I','Z','P','A','K','I','S','T','A','N','U','T'],
+      ['A','O','R','N','B','Y','B','H','U','T','A','N','B','B'],
+      ['R','T','A','E','S','E','E','E','S','K','N','R','S','U'],
+      ['N','I','N','P','T','A','K','M','B','A','U','T','A','R'],
+      ['T','M','D','A','L','H','O','I','E','L','A','A','I','M'],
+      ['I','N','D','L','E','N','A','C','S','N','D','N','B','A'],
+      ['A','C','A','M','B','O','D','I','A','T','D','S','R','L'],
+      ['W','I','M','M','A','I','J','A','L','O','A','Q','U','J'],
+      ['U','N','I','R','N','M','I','O','N','A','A','N','N','S'],
+      ['K','N','I','A','O','E','R','E','R','T','N','A','E','O'],
+      ['E','A','R','O','N','N','S','J','A','D','A','D','I','A'],
+      ['I','N','D','I','A','I','R','R','I','U','A','I','A','L'],
+      ['E','S','A','U','A','R','C','H','I','N','A','N','S','S'],
+    ],
+    words:['INDIA','THAILAND','JORDAN','OMAN','IRAN','BURMA','CAMBODIA','INDONESIA','NEPAL','QATAR'],
+    // start(r,c) dir(dr,dc)
+    answers:{
+      'INDIA':    {r:12,c:0, dr:0,dc:1},
+      'THAILAND': {r:4, c:4, dr:1,dc:1},
+      'JORDAN':   {r:8, c:6, dr:1,dc:1},
+      'OMAN':     {r:0, c:9, dr:0,dc:1},
+      'IRAN':     {r:1, c:2, dr:1,dc:0},
+      'BURMA':    {r:2, c:13,dr:1,dc:0},
+      'CAMBODIA': {r:7, c:1, dr:0,dc:1},
+      'INDONESIA':{r:5, c:12,dr:1,dc:-1},
+      'NEPAL':    {r:2, c:3, dr:1,dc:0},
+      'QATAR':    {r:8, c:11,dr:1,dc:-1},
+    }
+  },
+  {
+    title:'Languages',
+    titleGu:'ભાષાઓ',
+    desc:'Languages',
+    descGu:'ઊભા, આડા, ત્રાંસા અથવા ઉલટા — 10 ભાષાઓ શોધો',
+    grid:[
+      ['G','A','P','A','T','H','D','U','R','D','U','A','U','U'],
+      ['E','R','D','R','E','S','S','P','A','N','I','S','H','N'],
+      ['R','A','T','P','L','I','G','N','L','E','U','P','E','S'],
+      ['M','R','A','L','U','D','U','H','I','N','D','I','S','I'],
+      ['A','P','T','N','G','E','J','L','D','N','P','I','E','T'],
+      ['N','I','U','K','U','W','A','B','K','R','S','A','U','A'],
+      ['P','I','E','O','P','S','R','A','S','I','C','N','G','L'],
+      ['E','R','S','R','O','P','A','U','I','B','I','U','U','I'],
+      ['R','U','E','E','L','G','T','I','N','A','B','H','T','A'],
+      ['S','S','N','A','I','R','I','E','G','J','A','C','R','N'],
+      ['I','S','A','N','S','T','P','S','N','N','R','T','O','J'],
+      ['A','I','P','I','H','A','H','I','C','U','A','U','P','S'],
+      ['N','A','A','U','L','I','T','A','I','P','C','D','I','P'],
+      ['N','N','J','I','T','U','R','K','I','S','H','M','H','S'],
+    ],
+    words:['GUJARATI','HINDI','PUNJABI','KOREAN','GERMAN','RUSSIAN','ITALIAN','JAPANESE','THAI','ARABIC'],
+    answers:{
+      'GUJARATI': {r:2, c:6, dr:1,dc:0},
+      'HINDI':    {r:3, c:7, dr:0,dc:1},
+      'PUNJABI':  {r:12,c:9, dr:-1,dc:0},
+      'KOREAN':   {r:5, c:3, dr:1,dc:0},
+      'GERMAN':   {r:0, c:0, dr:1,dc:0},
+      'RUSSIAN':  {r:7, c:1, dr:1,dc:0},
+      'ITALIAN':  {r:3, c:13,dr:1,dc:0},
+      'JAPANESE': {r:13,c:2, dr:-1,dc:0},
+      'THAI':     {r:10,c:5, dr:1,dc:1},
+      'ARABIC':   {r:11,c:10,dr:-1,dc:0},
+    }
+  },
+  {
+    title:'Olympics Games',
+    titleGu:'ઓલિમ્પિક્સ રમતો',
+    desc:'Olympics Games',
+    descGu:'ઊભા, આડા, ત્રાંસા અથવા ઉલટા — 10 ઓલિમ્પિક્સ રમત શોધો',
+    grid:[
+      ['S','C','I','T','S','A','N','M','Y','G','S','G','C','I'],
+      ['I','E','G','W','I','N','T','E','R','W','K','L','Y','C'],
+      ['V','O','L','L','E','Y','B','A','L','L','I','L','C','E'],
+      ['C','N','O','T','N','I','M','D','A','B','J','A','L','H'],
+      ['S','C','I','T','E','L','H','T','A','C','U','B','I','O'],
+      ['S','P','M','U','J','G','N','O','L','D','M','T','N','C'],
+      ['S','L','G','N','I','M','M','I','W','S','P','E','G','K'],
+      ['T','K','O','L','Y','M','P','I','C','S','N','K','R','E'],
+      ['T','T','E','T','E','N','N','I','S','W','S','S','E','Y'],
+      ['L','B','B','L','T','G','N','I','V','I','D','A','M','T'],
+      ['G','Y','U','L','E','L','L','M','M','E','M','B','M','P'],
+      ['A','G','O','L','F','T','O','I','C','G','G','E','U','S'],
+      ['L','L','A','B','T','O','O','F','Y','U','Y','C','S','T'],
+      ['G','N','I','L','R','U','C','N','S','L','I','T','M','L'],
+    ],
+    words:['VOLLEYBALL','GOLF','TENNIS','JUMP','BADMINTON','FOOTBALL','DIVING','CYCLING','SWIMMING','HOCKEY'],
+    answers:{
+      'VOLLEYBALL':{r:2, c:0, dr:0,dc:1},
+      'GOLF':      {r:11,c:1, dr:0,dc:1},
+      'TENNIS':    {r:8, c:3, dr:0,dc:1},
+      'JUMP':      {r:5, c:4, dr:0,dc:-1},
+      'BADMINTON': {r:3, c:9, dr:0,dc:-1},
+      'FOOTBALL':  {r:12,c:7, dr:0,dc:-1},
+      'DIVING':    {r:9, c:10,dr:0,dc:-1},
+      'CYCLING':   {r:0, c:12,dr:1,dc:0},
+      'SWIMMING':  {r:6, c:9, dr:0,dc:-1},
+      'HOCKEY':    {r:3, c:13,dr:1,dc:0},
+    }
+  }
+];
+
+/* ═══════════════════════════════
+   STATE
+   ═══════════════════════════════ */
+let curPuz=0, foundWords=new Set(), score=0;
+let selecting=false, selStart=null, selEnd=null, selCells=[];
+let timerInterval=null, timerSec=0;
+let puzzleDone=[false,false,false];
+
+function getWordCells(word, puz){
+  const a=puz.answers[word];
+  const cells=[];
+  for(let i=0;i<word.length;i++) cells.push({r:a.r+i*a.dr, c:a.c+i*a.dc});
+  return cells;
+}
+
+function cellsMatch(a,b){ return a.r===b.r && a.c===b.c; }
+
+function getCellsBetween(r1,c1,r2,c2){
+  const dr=r2===r1?0:(r2>r1?1:-1);
+  const dc=c2===c1?0:(c2>c1?1:-1);
+  const cells=[];
+  let r=r1,c=c1;
+  while(true){
+    cells.push({r,c});
+    if(r===r2&&c===c2) break;
+    r+=dr; c+=dc;
+    if(cells.length>20) break;
+  }
+  return cells;
+}
+
+/* ═══════════════════════════════
+   RENDER
+   ═══════════════════════════════ */
+function loadPuzzle(idx){
+  curPuz=idx; foundWords=new Set(); selCells=[];
+  selecting=false; selStart=null; selEnd=null;
+  clearInterval(timerInterval); timerSec=0;
+  document.getElementById('timerVal').textContent='0s';
+  timerInterval=setInterval(()=>{
+    timerSec++;
+    document.getElementById('timerVal').textContent=timerSec+'s';
+  },1000);
+  buildTabs();
+  const puz=PUZZLES[idx];
+  document.getElementById('totalVal').textContent=puz.words.length;
+  document.getElementById('foundVal').textContent=0;
+  document.getElementById('pf').style.width=((idx/PUZZLES.length)*100)+'%';
+  renderPuzzle(puz);
+}
+
+function renderPuzzle(puz){
+  const area=document.getElementById('gameArea');
+  area.innerHTML='';
+  const card=document.createElement('div'); card.className='game-card';
+  card.innerHTML=`<div class="card-header"><h2>${puz.title}</h2><div class="cdesc">${puz.descGu}</div></div>`;
+  const body=document.createElement('div'); body.className='card-body';
+
+  // Grid
+  const gridWrap=document.createElement('div'); gridWrap.className='grid-wrap';
+  const gc=document.createElement('div'); gc.className='grid-container'; gc.id='gridContainer';
+  const tbl=document.createElement('table'); tbl.className='grid-table'; tbl.id='gridTable';
+
+  puz.grid.forEach((row,r)=>{
+    const tr=document.createElement('tr');
+    row.forEach((ch,c)=>{
+      const td=document.createElement('td');
+      td.textContent=ch; td.id=`cell-${r}-${c}`;
+      td.dataset.r=r; td.dataset.c=c;
+      // Touch events
+      td.addEventListener('touchstart',onTouchStart,{passive:true});
+      td.addEventListener('touchmove',onTouchMove,{passive:true});
+      td.addEventListener('touchend',onTouchEnd,{passive:true});
+      // Mouse events
+      td.addEventListener('mousedown',onMouseDown);
+      td.addEventListener('mouseover',onMouseOver);
+      td.addEventListener('mouseup',onMouseUp);
+      tr.appendChild(td);
+    });
+    tbl.appendChild(tr);
+  });
+
+  gc.appendChild(tbl);
+  gridWrap.appendChild(gc);
+  body.appendChild(gridWrap);
+
+  // Word list
+  const wb=document.createElement('div'); wb.className='words-box';
+  wb.innerHTML='<div class="words-label">શોધવાના શબ્દો</div>';
+  const wg=document.createElement('div'); wg.className='words-grid';
+  puz.words.forEach(w=>{
+    const chip=document.createElement('span'); chip.className='word-chip';
+    chip.id='chip-'+w; chip.textContent=w;
+    wg.appendChild(chip);
+  });
+  wb.appendChild(wg);
+  body.appendChild(wb);
+
+  body.insertAdjacentHTML('beforeend',`
+    <div class="feedback" id="fb"></div>
+    <div class="instruction">શબ્દ શોધવા પ્રથમ અક્ષરથી છેલ્લા સુધી સ્ક્રોલ કરો</div>
+    <button class="btn-reset" onclick="resetPuzzle()">ફરી શરૂ કરો</button>
+  `);
+
+  card.appendChild(body);
+  area.appendChild(card);
+}
+
+/* ═══ SELECTION LOGIC ═══ */
+function getCellFromPoint(x,y){
+  const el=document.elementFromPoint(x,y);
+  if(el && el.tagName==='TD' && el.dataset.r!==undefined) return {r:parseInt(el.dataset.r),c:parseInt(el.dataset.c)};
+  return null;
+}
+
+function onTouchStart(e){
+  const t=e.touches[0];
+  const cell=getCellFromPoint(t.clientX,t.clientY);
+  if(!cell) return;
+  startSelect(cell);
+}
+function onTouchMove(e){
+  const t=e.touches[0];
+  const cell=getCellFromPoint(t.clientX,t.clientY);
+  if(!cell) return;
+  updateSelect(cell);
+}
+function onTouchEnd(){ endSelect(); }
+function onMouseDown(e){ startSelect({r:parseInt(e.currentTarget.dataset.r),c:parseInt(e.currentTarget.dataset.c)}); }
+function onMouseOver(e){ if(selecting) updateSelect({r:parseInt(e.currentTarget.dataset.r),c:parseInt(e.currentTarget.dataset.c)}); }
+function onMouseUp(){ endSelect(); }
+document.addEventListener('mouseup',()=>{ if(selecting) endSelect(); });
+
+function startSelect(cell){
+  selecting=true; selStart=cell; selEnd=cell;
+  selCells=[cell];
+  highlightSelecting([cell]);
+}
+
+function updateSelect(cell){
+  if(!selecting) return;
+  selEnd=cell;
+  const cells=getCellsBetween(selStart.r,selStart.c,cell.r,cell.c);
+  selCells=cells;
+  highlightSelecting(cells);
+}
+
+function endSelect(){
+  if(!selecting){ selecting=false; return; }
+  selecting=false;
+  checkWord(selCells);
+  clearSelecting();
+}
+
+function highlightSelecting(cells){
+  // clear old selecting
+  document.querySelectorAll('.grid-table td.selecting').forEach(td=>td.classList.remove('selecting'));
+  cells.forEach(({r,c})=>{
+    const td=document.getElementById(`cell-${r}-${c}`);
+    if(td && !td.classList.contains('found') && !td.classList.contains('found-new')) td.classList.add('selecting');
+  });
+}
+
+function clearSelecting(){
+  document.querySelectorAll('.grid-table td.selecting').forEach(td=>td.classList.remove('selecting'));
+}
+
+function checkWord(cells){
+  if(cells.length<2) return;
+  const puz=PUZZLES[curPuz];
+  const typed=cells.map(({r,c})=>puz.grid[r][c]).join('');
+  const typedRev=typed.split('').reverse().join('');
+  const fb=document.getElementById('fb');
+
+  let found=null;
+  for(const word of puz.words){
+    if(!foundWords.has(word) && (typed===word||typedRev===word)){
+      found=word; break;
+    }
+  }
+
+  if(found){
+    foundWords.add(found);
+    score+=10; document.getElementById('scoreVal').textContent=score;
+    document.getElementById('foundVal').textContent=foundWords.size;
+    // Mark cells found
+    const wordCells=getWordCells(found,puz);
+    wordCells.forEach(({r,c})=>{
+      const td=document.getElementById(`cell-${r}-${c}`);
+      if(td){ td.className='found-new'; setTimeout(()=>td.className='found',400); }
+    });
+    // Cross out chip
+    const chip=document.getElementById('chip-'+found);
+    if(chip) chip.className='word-chip found';
+    fb.className='feedback ok show';
+    fb.textContent=`✓ "${found}" મળ્યો! +10 પોઇન્ટ`;
+
+    if(foundWords.size===puz.words.length){
+      clearInterval(timerInterval);
+      puzzleDone[curPuz]=true;
+      buildTabs();
+      document.getElementById('pf').style.width=(((curPuz+1)/PUZZLES.length)*100)+'%';
+      setTimeout(()=>{
+        fb.className='feedback done show';
+        fb.textContent=`🎉 બધા ${puz.words.length} શબ્દ મળ્યા! ${timerSec} સેકન્ડ`;
+      },500);
+    }
+  } else {
+    fb.className='feedback bad show';
+    fb.textContent='ફરી પ્રયત્ન કરો…';
+    setTimeout(()=>{ if(fb.className.includes('bad')){ fb.className='feedback'; } },1000);
+  }
+}
+
+function resetPuzzle(){
+  clearInterval(timerInterval);
+  score=0; document.getElementById('scoreVal').textContent=0;
+  loadPuzzle(curPuz);
+}
+
+function buildTabs(){
+  const row=document.getElementById('tabs'); row.innerHTML='';
+  PUZZLES.forEach((p,i)=>{
+    const b=document.createElement('button');
+    b.className='tab'+(i===curPuz?' active':puzzleDone[i]?' done':'');
+    b.innerHTML=(puzzleDone[i]?'✓ ':'')+p.titleGu;
+    b.onclick=()=>{ clearInterval(timerInterval); loadPuzzle(i); };
+    row.appendChild(b);
+  });
+}
+
+loadPuzzle(0);
+</script>
+</body>
+</html>
