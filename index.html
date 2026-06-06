@@ -34,7 +34,7 @@ h1{font-size:24px;font-weight:700;color:#752886;margin-bottom:2px;}
 
 /* GRID */
 .grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:12px;}
-.grid-table{border-collapse:collapse;margin:0 auto;}
+.grid-table{border-collapse:collapse;margin:0 auto;touch-action:none;}
 .grid-table td{
   width:34px;height:34px;
   text-align:center;vertical-align:middle;
@@ -44,6 +44,7 @@ h1{font-size:24px;font-weight:700;color:#752886;margin-bottom:2px;}
   border:1px solid #F2F2F2;
   cursor:pointer;
   user-select:none;-webkit-user-select:none;
+  touch-action:none;
   transition:background 0.1s, color 0.1s;
   position:relative;
 }
@@ -288,10 +289,7 @@ function renderPuzzle(puz){
       td.textContent=ch; td.id=`cell-${r}-${c}`;
       td.dataset.r=r; td.dataset.c=c;
       // Touch events
-      td.addEventListener('touchstart',onTouchStart,{passive:true});
-      td.addEventListener('touchmove',onTouchMove,{passive:true});
-      td.addEventListener('touchend',onTouchEnd,{passive:true});
-      // Mouse events
+      // Mouse events only — touch handled at container level
       td.addEventListener('mousedown',onMouseDown);
       td.addEventListener('mouseover',onMouseOver);
       td.addEventListener('mouseup',onMouseUp);
@@ -299,6 +297,27 @@ function renderPuzzle(puz){
     });
     tbl.appendChild(tr);
   });
+
+  // Attach ONE touchmove listener on the container — non-passive, prevents all scroll
+  gc.addEventListener('touchmove', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    const t = e.touches[0];
+    const cell = getCellFromPoint(t.clientX, t.clientY);
+    if(cell && selecting) updateSelect(cell);
+  }, {passive: false});
+
+  gc.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    const t = e.touches[0];
+    const cell = getCellFromPoint(t.clientX, t.clientY);
+    if(cell) startSelect(cell);
+  }, {passive: false});
+
+  gc.addEventListener('touchend', function(e){
+    e.preventDefault();
+    endSelect();
+  }, {passive: false});
 
   gc.appendChild(tbl);
   gridWrap.appendChild(gc);
@@ -334,18 +353,23 @@ function getCellFromPoint(x,y){
 }
 
 function onTouchStart(e){
+  e.preventDefault();
   const t=e.touches[0];
   const cell=getCellFromPoint(t.clientX,t.clientY);
   if(!cell) return;
   startSelect(cell);
 }
 function onTouchMove(e){
+  e.preventDefault(); // ← stops page scroll while selecting
   const t=e.touches[0];
   const cell=getCellFromPoint(t.clientX,t.clientY);
   if(!cell) return;
   updateSelect(cell);
 }
-function onTouchEnd(){ endSelect(); }
+function onTouchEnd(e){
+  e.preventDefault();
+  endSelect();
+}
 function onMouseDown(e){ startSelect({r:parseInt(e.currentTarget.dataset.r),c:parseInt(e.currentTarget.dataset.c)}); }
 function onMouseOver(e){ if(selecting) updateSelect({r:parseInt(e.currentTarget.dataset.r),c:parseInt(e.currentTarget.dataset.c)}); }
 function onMouseUp(){ endSelect(); }
